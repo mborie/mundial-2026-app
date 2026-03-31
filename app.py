@@ -17,26 +17,6 @@ from flask import (
 
 import database as db
 
-from database import get_db_connection
-
-def run_seed_if_empty():
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("SELECT COUNT(*) FROM matches")
-        count = cursor.fetchone()[0]
-        
-        if count == 0:
-            print("⚽ Base vacía, cargando seed...")
-            import seed_worldcup
-            seed_worldcup.seed_data()  # puede cambiar según tu archivo
-        
-        conn.close()
-    except Exception as e:
-        print(f"Error al inicializar seed: {e}")
-
-run_seed_if_empty()
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # App Factory
@@ -255,6 +235,23 @@ def dashboard():
     return render_template("dashboard.html", upcoming=upcoming, live_matches=live,
         recent_results=recent, my_bets=my_bets, ranking=ranking, my_rank=my_rank,
         total_points=total_pts, total_bets=len(my_bets))
+
+
+@app.route("/init-seed")
+def init_seed():
+    try:
+        import seed_worldcup
+
+        if hasattr(seed_worldcup, "seed_data"):
+            seed_worldcup.seed_data()
+        elif hasattr(seed_worldcup, "main"):
+            seed_worldcup.main()
+        else:
+            return "seed_worldcup.py no tiene seed_data() ni main()", 500
+
+        return "Seed cargada correctamente", 200
+    except Exception as e:
+        return f"Error cargando seed: {e}", 500
 
 
 @app.route("/partidos")
