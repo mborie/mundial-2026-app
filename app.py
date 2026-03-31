@@ -37,6 +37,7 @@ app.config.update(
     POINTS_TOP_SCORER=int(os.environ.get("POINTS_TOP_SCORER", "7")),
     SPECIAL_PREDICTIONS_LOCK=os.environ.get("SPECIAL_PREDICTIONS_LOCK", "2026-06-11T16:00:00+00:00"),
     DISPLAY_TIMEZONE=os.environ.get("DISPLAY_TIMEZONE", "America/Santiago"),
+    FOOTBALL_API_PROVIDER=os.environ.get("FOOTBALL_API_PROVIDER", "openfootball"),
     FOOTBALL_API_KEY=os.environ.get("FOOTBALL_API_KEY", ""),
 )
 
@@ -419,9 +420,12 @@ def admin_sync():
     tc = conn.execute("SELECT COUNT(*) FROM teams").fetchone()[0]
     mc = conn.execute("SELECT COUNT(*) FROM matches").fetchone()[0]
     conn.close()
+    provider = app.config.get("FOOTBALL_API_PROVIDER", "openfootball")
     api_key = app.config.get("FOOTBALL_API_KEY", "")
+    # OpenFootball siempre está disponible (no requiere key)
+    api_connected = (provider == "openfootball") or bool(api_key)
     return render_template("admin/sync.html", teams_count=tc, matches_count=mc,
-                           api_connected=bool(api_key), api_provider="football-data" if api_key else "manual")
+                           api_connected=api_connected, api_provider=provider)
 
 
 @app.route("/admin/sincronizar/equipos", methods=["POST"])
