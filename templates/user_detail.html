@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% block title %}{{ user.display_name }}{% endblock %}{% block content %}
+<div class="page-header"><div class="d-flex align-items-center gap-md">
+<a href="{{ url_for('ranking') }}" class="btn btn-secondary-custom btn-sm-custom"><i class="bi bi-arrow-left"></i></a>
+<div><h1><i class="bi bi-person-circle" style="color:var(--accent-blue);"></i> {{ user.display_name }} {% if user.id==g.user.id %}<small class="text-gold">(tú)</small>{% endif %}</h1>
+<p>@{{ user.username }}</p></div></div></div>
+{% set match_pts = bets|sum(attribute='points_earned') %}{% set correct = bets|selectattr('is_correct')|list|length %}{% set total = bets|length %}
+{% set acc = (correct/total*100)|round(1) if total>0 else 0 %}
+<div class="row g-3 mb-4">
+<div class="col-6 col-md-3"><div class="stat-card stat-gold"><div class="stat-value">{{ match_pts + (special.points_champion + special.points_runner_up + special.points_top_scorer if special else 0) }}</div><div class="stat-label">Total</div></div></div>
+<div class="col-6 col-md-3"><div class="stat-card stat-green"><div class="stat-value">{{ correct }}/{{ total }}</div><div class="stat-label">Aciertos</div></div></div>
+<div class="col-6 col-md-3"><div class="stat-card stat-blue"><div class="stat-value">{{ acc }}%</div><div class="stat-label">Precisión</div></div></div>
+<div class="col-6 col-md-3"><div class="stat-card stat-purple"><div class="stat-value">{{ match_pts }}</div><div class="stat-label">Pts Partidos</div></div></div></div>
+{% if special %}<div class="special-card mb-4"><div class="section-title mb-3"><i class="bi bi-star-fill" style="color:var(--accent-gold);"></i> Especiales</div>
+<div class="row g-3"><div class="col-md-4"><span style="font-size:1.5rem;">🏆</span> <strong>{{ special.champion_name or '—' }}</strong> {% if special.points_champion>0 %}<span class="points-badge points-positive">+{{ special.points_champion }}</span>{% endif %}</div>
+<div class="col-md-4"><span style="font-size:1.5rem;">🥈</span> <strong>{{ special.runner_up_name or '—' }}</strong> {% if special.points_runner_up>0 %}<span class="points-badge points-positive">+{{ special.points_runner_up }}</span>{% endif %}</div>
+<div class="col-md-4"><span style="font-size:1.5rem;">⚽</span> <strong>{{ special.top_scorer_name or '—' }}</strong> {% if special.points_top_scorer>0 %}<span class="points-badge points-positive">+{{ special.points_top_scorer }}</span>{% endif %}</div></div></div>{% endif %}
+<div class="section-header"><div class="section-title"><i class="bi bi-clock-history" style="color:var(--accent-blue);"></i> Historial</div></div>
+{% if bets %}<div class="card-custom p-0" style="overflow-x:auto;"><table class="ranking-table"><thead><tr><th>Partido</th><th class="text-center">Pronóstico</th><th class="text-center">Resultado</th><th class="text-center">Puntos</th></tr></thead>
+<tbody>{% for b in bets %}<tr><td><div class="d-flex align-items-center gap-sm" style="font-size:.85rem;">
+{% if b.home_flag %}<img src="{{ b.home_flag }}" style="width:20px;height:14px;object-fit:contain;">{% endif %} {{ b.home_name }} <span style="color:var(--text-muted);">vs</span> {{ b.away_name }}
+{% if b.away_flag %}<img src="{{ b.away_flag }}" style="width:20px;height:14px;object-fit:contain;">{% endif %}</div>
+<div style="font-size:.72rem;color:var(--text-muted);">{{ b.match_date|format_date }}</div></td>
+<td class="text-center"><span class="mono" style="font-weight:600;font-size:1rem;{% if b.is_correct %}color:var(--accent-green);{% elif b.is_correct==0 %}color:var(--accent-red);{% else %}color:var(--text-secondary);{% endif %}">{{ b.prediction }}</span></td>
+<td class="text-center">{% if b.home_score is not none %}<span class="mono" style="font-weight:600;">{{ b.home_score }}-{{ b.away_score }}</span>{% else %}<span style="color:var(--text-muted);">—</span>{% endif %}</td>
+<td class="text-center">{% if b.is_correct %}<span class="points-badge points-positive">+{{ b.points_earned }}</span>{% elif b.is_correct==0 %}<span class="points-badge points-zero">0</span>{% else %}—{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="empty-state"><div class="icon">📝</div><p>Sin apuestas aún.</p></div>{% endif %}{% endblock %}

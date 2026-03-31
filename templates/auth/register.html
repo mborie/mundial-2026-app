@@ -1,0 +1,16 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Registro — Mundial 2026</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet"></head>
+<body><div class="auth-container"><div class="auth-card">
+<div class="auth-logo"><i class="bi bi-trophy-fill" style="font-size:2.5rem;color:var(--accent-gold);"></i><h1>Crear Cuenta</h1><p>Únete al pronóstico del Mundial 2026</p></div>
+{% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}{% for cat, msg in messages %}<div class="alert-custom alert-{{ 'error' if cat=='error' else cat }}-custom mb-3">{{ msg }}</div>{% endfor %}{% endif %}{% endwith %}
+<form method="POST">
+<div class="mb-3"><label class="form-label-custom">Nombre visible</label><input type="text" name="display_name" class="form-control form-control-custom" placeholder="Juan Pérez" value="{{ display_name|default('') }}" required><small style="color:var(--text-muted);font-size:.75rem;">Así aparecerás en el ranking</small></div>
+<div class="mb-3"><label class="form-label-custom">Nombre de usuario</label><input type="text" name="username" class="form-control form-control-custom" placeholder="juanperez" value="{{ username|default('') }}" required pattern="[a-z0-9_]+"><small style="color:var(--text-muted);font-size:.75rem;">Solo letras minúsculas, números y _</small></div>
+<div class="mb-3"><label class="form-label-custom">Contraseña</label><input type="password" name="password" class="form-control form-control-custom" placeholder="Mínimo 6 caracteres" required minlength="6"></div>
+<div class="mb-4"><label class="form-label-custom">Confirmar contraseña</label><input type="password" name="password_confirm" class="form-control form-control-custom" placeholder="Repite la contraseña" required></div>
+<button type="submit" class="btn btn-primary-custom w-100 mb-3">Crear Cuenta</button>
+<div class="text-center"><small style="color:var(--text-muted);"><i class="bi bi-info-circle"></i> Un admin debe aprobar tu cuenta antes de apostar.</small></div>
+<div class="text-center mt-2"><span style="color:var(--text-muted);font-size:.85rem;">¿Ya tienes cuenta? <a href="{{ url_for('login') }}">Inicia sesión</a></span></div>
+</form></div></div></body></html>

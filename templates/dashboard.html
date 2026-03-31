@@ -1,0 +1,54 @@
+{% extends "base.html" %}{% block title %}Inicio{% endblock %}{% block content %}
+<div class="d-flex justify-content-between align-items-start flex-wrap mb-4"><div>
+<h1 style="font-size:1.6rem;font-weight:700;">Hola, {{ g.user.display_name }} 👋</h1>
+{% if not g.user.is_approved %}<div class="alert-custom alert-info-custom mt-2" style="display:inline-flex;"><i class="bi bi-hourglass-split"></i> Tu cuenta está pendiente de aprobación.</div>{% endif %}
+</div></div>
+<div class="row g-3 mb-4">
+<div class="col-6 col-md-3"><div class="stat-card stat-gold"><div class="stat-value">{{ total_points }}</div><div class="stat-label">Mis Puntos</div></div></div>
+<div class="col-6 col-md-3"><div class="stat-card stat-green"><div class="stat-value">{{ total_bets }}</div><div class="stat-label">Apuestas</div></div></div>
+<div class="col-6 col-md-3"><div class="stat-card stat-blue"><div class="stat-value">{{ my_rank.accuracy if my_rank else 0 }}%</div><div class="stat-label">Acierto</div></div></div>
+<div class="col-6 col-md-3"><div class="stat-card stat-purple"><div class="stat-value">#{{ my_rank.position if my_rank else '-' }}</div><div class="stat-label">Mi Posición</div></div></div>
+</div>
+<div class="row g-4"><div class="col-lg-8">
+{% if live_matches %}<div class="section-header"><div class="section-title"><span class="dot-live"></span> En Vivo</div></div>
+<div class="row g-3 mb-4">{% for m in live_matches %}<div class="col-md-6"><div class="match-card live">
+<div class="match-meta"><span class="match-stage-badge badge-knockout">{{ STAGE_NAMES.get(m.stage, m.stage) }}</span><span class="status-badge status-live"><span class="dot-live"></span> En vivo</span></div>
+<div class="match-teams"><div class="match-team">{% if m.home_flag %}<img src="{{ m.home_flag }}">{% endif %}<span class="team-name">{{ m.home_name or 'TBD' }}</span></div>
+<div class="match-score">{{ m.home_score if m.home_score is not none else '-' }}</div><div class="match-vs">:</div><div class="match-score">{{ m.away_score if m.away_score is not none else '-' }}</div>
+<div class="match-team">{% if m.away_flag %}<img src="{{ m.away_flag }}">{% endif %}<span class="team-name">{{ m.away_name or 'TBD' }}</span></div></div>
+</div></div>{% endfor %}</div>{% endif %}
+<div class="section-header"><div class="section-title"><i class="bi bi-calendar-event" style="color:var(--accent-blue);"></i> Próximos Partidos</div>
+<a href="{{ url_for('matches') }}" class="btn btn-secondary-custom btn-sm-custom">Ver todos <i class="bi bi-arrow-right"></i></a></div>
+{% if upcoming %}<div class="row g-3 mb-4">{% for m in upcoming %}<div class="col-md-6"><div class="match-card scheduled">
+<div class="match-meta"><span class="match-stage-badge badge-group">{{ STAGE_NAMES.get(m.stage, '') }}{% if m.group_name %} · Grupo {{ m.group_name }}{% endif %}</span><span>{{ m.match_date|format_date }}</span></div>
+<div class="match-teams"><div class="match-team">{% if m.home_flag %}<img src="{{ m.home_flag }}">{% endif %}<span class="team-name">{{ m.home_name or 'TBD' }}</span></div>
+<div class="match-vs">vs</div>
+<div class="match-team">{% if m.away_flag %}<img src="{{ m.away_flag }}">{% endif %}<span class="team-name">{{ m.away_name or 'TBD' }}</span></div></div>
+{% if g.user.is_approved and not is_match_locked(m.match_date) %}<form method="POST" action="{{ url_for('place_bet', match_id=m.id) }}"><div class="bet-buttons">
+<button type="submit" name="prediction" value="1" class="bet-btn {% if m.id in my_bets and my_bets[m.id].prediction=='1' %}selected{% endif %}">1 <span class="btn-label">Local</span></button>
+<button type="submit" name="prediction" value="X" class="bet-btn {% if m.id in my_bets and my_bets[m.id].prediction=='X' %}selected{% endif %}">X <span class="btn-label">Empate</span></button>
+<button type="submit" name="prediction" value="2" class="bet-btn {% if m.id in my_bets and my_bets[m.id].prediction=='2' %}selected{% endif %}">2 <span class="btn-label">Visita</span></button>
+</div></form>{% elif is_match_locked(m.match_date) %}<div class="text-center mt-2"><span class="status-badge status-locked"><i class="bi bi-lock-fill"></i> Bloqueado</span></div>{% endif %}
+</div></div>{% endfor %}</div>{% else %}<div class="empty-state"><div class="icon">⚽</div><p>No hay partidos próximos.</p></div>{% endif %}
+{% if recent_results %}<div class="section-header"><div class="section-title"><i class="bi bi-check-circle-fill" style="color:var(--accent-green);"></i> Últimos Resultados</div></div>
+<div class="row g-3">{% for m in recent_results %}<div class="col-md-6"><div class="match-card finished">
+<div class="match-meta"><span class="match-stage-badge badge-group">{{ STAGE_NAMES.get(m.stage, '') }}</span><span class="status-badge status-finished">Finalizado</span></div>
+<div class="match-teams"><div class="match-team">{% if m.home_flag %}<img src="{{ m.home_flag }}">{% endif %}<span class="team-name">{{ m.home_name or 'TBD' }}</span></div>
+<div class="match-score">{{ m.home_score }}</div><div class="match-vs">:</div><div class="match-score">{{ m.away_score }}</div>
+<div class="match-team">{% if m.away_flag %}<img src="{{ m.away_flag }}">{% endif %}<span class="team-name">{{ m.away_name or 'TBD' }}</span></div></div>
+</div></div>{% endfor %}</div>{% endif %}
+</div>
+<div class="col-lg-4"><div class="card-custom">
+<div class="section-header mb-3"><div class="section-title"><i class="bi bi-trophy-fill" style="color:var(--accent-gold);"></i> Top 5</div><a href="{{ url_for('ranking') }}" class="btn btn-secondary-custom btn-sm-custom">Ver todo</a></div>
+{% for r in ranking %}<div class="d-flex align-items-center justify-content-between py-2 {% if not loop.last %}border-bottom{% endif %}" style="border-color:var(--border-color)!important;">
+<div class="d-flex align-items-center gap-sm"><span style="width:24px;text-align:center;">{% if r.position==1 %}🥇{% elif r.position==2 %}🥈{% elif r.position==3 %}🥉{% else %}{{ r.position }}{% endif %}</span>
+<div><a href="{{ url_for('user_detail', uid=r.user_id) }}" style="font-size:.9rem;text-decoration:none;color:var(--text-primary);font-weight:600;">{{ r.display_name }}</a>
+<div style="font-size:.72rem;color:var(--text-muted);">{{ r.correct_bets }}/{{ r.total_bets }} aciertos</div></div></div>
+<span class="rank-points">{{ r.total_points }}</span></div>{% endfor %}
+{% if not ranking %}<div class="empty-state py-3"><p style="font-size:.85rem;">Aún no hay datos</p></div>{% endif %}
+</div>
+<div class="card-custom mt-3"><div class="section-title mb-3"><i class="bi bi-lightning-fill" style="color:var(--accent-orange);"></i> Accesos rápidos</div>
+<div class="d-grid gap-2"><a href="{{ url_for('matches') }}" class="btn btn-secondary-custom text-start"><i class="bi bi-calendar-event"></i> Todos los partidos</a>
+<a href="{{ url_for('special_predictions') }}" class="btn btn-secondary-custom text-start"><i class="bi bi-star-fill"></i> Pronósticos especiales</a>
+<a href="{{ url_for('my_profile') }}" class="btn btn-secondary-custom text-start"><i class="bi bi-person-fill"></i> Mi historial</a></div></div>
+</div></div>{% endblock %}

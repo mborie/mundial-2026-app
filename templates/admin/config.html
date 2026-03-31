@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% block title %}Config{% endblock %}{% block content %}
+<div class="page-header"><h1><i class="bi bi-sliders" style="color:var(--accent-purple);"></i> Configuración</h1></div><div class="filter-bar mb-4">
+<a href="{{ url_for('admin_dashboard') }}" class="filter-chip {% if request.endpoint=='admin_dashboard' %}active{% endif %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+<a href="{{ url_for('admin_users') }}" class="filter-chip {% if request.endpoint=='admin_users' %}active{% endif %}"><i class="bi bi-people"></i> Usuarios</a>
+<a href="{{ url_for('admin_bets') }}" class="filter-chip {% if request.endpoint=='admin_bets' %}active{% endif %}"><i class="bi bi-card-list"></i> Apuestas</a>
+<a href="{{ url_for('admin_sync') }}" class="filter-chip {% if request.endpoint=='admin_sync' %}active{% endif %}"><i class="bi bi-arrow-repeat"></i> Sincronizar</a>
+<a href="{{ url_for('admin_results') }}" class="filter-chip {% if request.endpoint=='admin_results' %}active{% endif %}"><i class="bi bi-pencil-square"></i> Resultados</a>
+<a href="{{ url_for('admin_config') }}" class="filter-chip {% if request.endpoint=='admin_config' %}active{% endif %}"><i class="bi bi-sliders"></i> Config</a></div>
+<div class="row g-4">
+<div class="col-lg-6"><div class="card-custom"><div class="section-title mb-3"><i class="bi bi-lock" style="color:var(--accent-orange);"></i> Cierre Pronósticos Especiales</div>
+<form method="POST"><input type="hidden" name="action" value="set_lock_date">
+<div class="mb-3"><label class="form-label-custom">Fecha cierre (UTC)</label><input type="datetime-local" name="lock_date" class="form-control form-control-custom" value="{{ current_config.lock_date[:16] if current_config.lock_date else '' }}"></div>
+<div class="mb-2" style="font-size:.8rem;color:var(--text-muted);">Actual: {{ current_config.lock_date or 'No configurada' }}</div>
+<button class="btn btn-primary-custom"><i class="bi bi-check-lg"></i> Actualizar</button></form></div></div>
+<div class="col-lg-6"><div class="special-card"><div class="section-title mb-3"><i class="bi bi-trophy-fill" style="color:var(--accent-gold);"></i> Resultados Reales</div>
+<p style="font-size:.85rem;color:var(--text-secondary);">Carga al finalizar. Puntos se recalculan automáticamente.</p>
+<form method="POST"><input type="hidden" name="action" value="set_actual_results">
+<div class="mb-3"><label class="form-label-custom">🏆 Campeón</label><select name="champion_team_id" class="form-select form-select-custom"><option value="">Sin definir</option>{% for t in teams %}<option value="{{ t.id }}" {% if current_config.champion_id|string==t.id|string %}selected{% endif %}>{{ t.name }}</option>{% endfor %}</select></div>
+<div class="mb-3"><label class="form-label-custom">🥈 Subcampeón</label><select name="runner_up_team_id" class="form-select form-select-custom"><option value="">Sin definir</option>{% for t in teams %}<option value="{{ t.id }}" {% if current_config.runner_up_id|string==t.id|string %}selected{% endif %}>{{ t.name }}</option>{% endfor %}</select></div>
+<div class="mb-3"><label class="form-label-custom">⚽ Goleador</label><input type="text" name="top_scorer_name" class="form-control form-control-custom" value="{{ current_config.top_scorer or '' }}"></div>
+<button class="btn btn-primary-custom"><i class="bi bi-check-lg"></i> Guardar y Recalcular</button></form></div></div></div>{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}{% block title %}Partidos{% endblock %}{% block content %}
+<div class="page-header"><h1><i class="bi bi-calendar-event" style="color:var(--accent-blue);"></i> Partidos del Mundial</h1>
+<p>Selecciona tu pronóstico. Puedes cambiar hasta 10 min antes del inicio.</p></div>
+<div class="filter-bar">
+<a href="{{ url_for('matches') }}" class="filter-chip {% if not current_stage and not current_group and not current_status %}active{% endif %}">Todos</a>
+<a href="{{ url_for('matches', status='upcoming') }}" class="filter-chip {% if current_status=='upcoming' %}active{% endif %}"><i class="bi bi-clock"></i> Próximos</a>
+<a href="{{ url_for('matches', status='live') }}" class="filter-chip {% if current_status=='live' %}active{% endif %}"><i class="bi bi-broadcast"></i> En Vivo</a>
+<a href="{{ url_for('matches', status='finished') }}" class="filter-chip {% if current_status=='finished' %}active{% endif %}"><i class="bi bi-check-circle"></i> Finalizados</a>
+{% for s in stages %}<a href="{{ url_for('matches', stage=s) }}" class="filter-chip {% if current_stage==s %}active{% endif %}">{{ STAGE_NAMES.get(s, s) }}</a>{% endfor %}
+</div>
+{% if groups %}<div class="filter-bar mb-3"><span style="color:var(--text-muted);font-size:.8rem;padding-right:.5rem;">Grupo:</span>
+{% for gr in groups %}<a href="{{ url_for('matches', group=gr, stage=current_stage) }}" class="filter-chip {% if current_group==gr %}active{% endif %}">{{ gr }}</a>{% endfor %}</div>{% endif %}
+{% if matches %}<div class="row g-3">
+{% set ns = namespace(prev_date='') %}{% for m in matches %}
+{% set d = m.match_date|format_day %}{% if d != ns.prev_date %}{% set ns.prev_date = d %}
+<div class="col-12"><h6 style="color:var(--text-muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.5px;margin:1rem 0 .5rem;padding-bottom:.5rem;border-bottom:1px solid var(--border-color);">📅 {{ d }}</h6></div>{% endif %}
+<div class="col-md-6 col-lg-4"><div class="match-card {% if m.is_result_final %}finished{% elif m.status in ('LIVE','IN_PLAY','PAUSED') %}live{% elif is_match_locked(m.match_date) %}locked{% else %}scheduled{% endif %}">
+<div class="match-meta"><span class="match-stage-badge {% if m.stage=='GROUP_STAGE' %}badge-group{% elif m.stage=='FINAL' %}badge-final{% else %}badge-knockout{% endif %}">{{ STAGE_NAMES.get(m.stage, '') }}{% if m.group_name %} · {{ m.group_name }}{% endif %}</span><span>{{ m.match_date|format_time }}</span></div>
+<div class="match-teams"><div class="match-team">{% if m.home_flag %}<img src="{{ m.home_flag }}">{% endif %}<span class="team-name">{{ m.home_name or 'TBD' }}</span></div>
+{% if m.is_result_final or m.home_score is not none %}<div class="match-score">{{ m.home_score if m.home_score is not none else '-' }}</div><div class="match-vs">:</div><div class="match-score">{{ m.away_score if m.away_score is not none else '-' }}</div>{% else %}<div class="match-vs">vs</div>{% endif %}
+<div class="match-team">{% if m.away_flag %}<img src="{{ m.away_flag }}">{% endif %}<span class="team-name">{{ m.away_name or 'TBD' }}</span></div></div>
+{% if m.status in ('LIVE','IN_PLAY','PAUSED') %}<div class="text-center mb-2"><span class="status-badge status-live"><span class="dot-live"></span> En Vivo</span></div>{% elif m.is_result_final %}<div class="text-center mb-2"><span class="status-badge status-finished"><i class="bi bi-check-circle-fill"></i> Finalizado</span></div>{% endif %}
+{% set bet = my_bets.get(m.id) %}
+{% if m.is_result_final and bet %}<div class="bet-buttons">
+<div class="bet-btn {% if bet.prediction=='1' %}{% if bet.is_correct %}correct{% else %}incorrect{% endif %}{% endif %}" style="cursor:default;">1</div>
+<div class="bet-btn {% if bet.prediction=='X' %}{% if bet.is_correct %}correct{% else %}incorrect{% endif %}{% endif %}" style="cursor:default;">X</div>
+<div class="bet-btn {% if bet.prediction=='2' %}{% if bet.is_correct %}correct{% else %}incorrect{% endif %}{% endif %}" style="cursor:default;">2</div></div>
+{% if bet.is_correct %}<div class="text-center mt-2"><span class="points-badge points-positive"><i class="bi bi-check-circle-fill"></i> +{{ bet.points_earned }} pts</span></div>{% elif bet.is_correct==0 %}<div class="text-center mt-2"><span class="points-badge points-zero"><i class="bi bi-x-circle"></i> 0 pts</span></div>{% endif %}
+{% elif not is_match_locked(m.match_date) and g.user.is_approved %}<form method="POST" action="{{ url_for('place_bet', match_id=m.id) }}"><div class="bet-buttons">
+<button type="submit" name="prediction" value="1" class="bet-btn {% if bet and bet.prediction=='1' %}selected{% endif %}">1 <span class="btn-label">Local</span></button>
+<button type="submit" name="prediction" value="X" class="bet-btn {% if bet and bet.prediction=='X' %}selected{% endif %}">X <span class="btn-label">Empate</span></button>
+<button type="submit" name="prediction" value="2" class="bet-btn {% if bet and bet.prediction=='2' %}selected{% endif %}">2 <span class="btn-label">Visita</span></button></div></form>
+{% if bet %}<div class="text-center mt-1"><small style="color:var(--accent-green);font-size:.72rem;"><i class="bi bi-check"></i> Registrada — puedes cambiar</small></div>{% endif %}
+{% elif is_match_locked(m.match_date) and not m.is_result_final %}{% if bet %}<div class="bet-buttons">
+<div class="bet-btn {% if bet.prediction=='1' %}selected{% endif %}" style="cursor:default;">1</div><div class="bet-btn {% if bet.prediction=='X' %}selected{% endif %}" style="cursor:default;">X</div><div class="bet-btn {% if bet.prediction=='2' %}selected{% endif %}" style="cursor:default;">2</div></div>{% endif %}
+<div class="text-center mt-2"><span class="status-badge status-locked"><i class="bi bi-lock-fill"></i> {% if bet %}Bloqueada{% else %}Sin apuesta{% endif %}</span></div>{% endif %}
+</div></div>{% endfor %}</div>
+{% else %}<div class="empty-state"><div class="icon">📋</div><p>No hay partidos con estos filtros.</p></div>{% endif %}
+{% endblock %}

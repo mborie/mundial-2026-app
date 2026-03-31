@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% block title %}Ranking{% endblock %}{% block content %}
+<div class="page-header"><h1><i class="bi bi-trophy-fill" style="color:var(--accent-gold);"></i> Ranking General</h1>
+<p>Desempate: empates acertados → aciertos totales → % acierto → antigüedad.</p></div>
+{% if ranking %}<div class="card-custom p-0" style="overflow-x:auto;"><table class="ranking-table"><thead><tr>
+<th style="width:50px;">#</th><th>Jugador</th><th class="text-center">Total</th>
+<th class="text-center d-none d-md-table-cell">Partidos</th><th class="text-center d-none d-md-table-cell">🏆</th><th class="text-center d-none d-md-table-cell">🥈</th><th class="text-center d-none d-lg-table-cell">⚽</th>
+<th class="text-center d-none d-md-table-cell">Aciertos</th><th class="text-center d-none d-lg-table-cell">%</th></tr></thead>
+<tbody>{% for r in ranking %}<tr {% if r.user_id==g.user.id %}style="background:rgba(240,180,41,.06)!important;"{% endif %}>
+<td style="font-weight:700;text-align:center;">{% if r.position==1 %}🥇{% elif r.position==2 %}🥈{% elif r.position==3 %}🥉{% else %}{{ r.position }}{% endif %}</td>
+<td class="rank-name"><a href="{{ url_for('user_detail', uid=r.user_id) }}">{{ r.display_name }}{% if r.user_id==g.user.id %} <small class="text-gold">(tú)</small>{% endif %}</a></td>
+<td class="text-center rank-points">{{ r.total_points }}</td>
+<td class="text-center rank-detail d-none d-md-table-cell">{{ r.match_points }}</td>
+<td class="text-center rank-detail d-none d-md-table-cell">{% if r.pts_champion>0 %}<span class="text-green">{{ r.pts_champion }}</span>{% else %}-{% endif %}</td>
+<td class="text-center rank-detail d-none d-md-table-cell">{% if r.pts_runner_up>0 %}<span class="text-blue">{{ r.pts_runner_up }}</span>{% else %}-{% endif %}</td>
+<td class="text-center rank-detail d-none d-lg-table-cell">{% if r.pts_top_scorer>0 %}<span class="text-purple">{{ r.pts_top_scorer }}</span>{% else %}-{% endif %}</td>
+<td class="text-center rank-detail d-none d-md-table-cell">{{ r.correct_bets }}/{{ r.total_bets }}</td>
+<td class="text-center rank-detail d-none d-lg-table-cell">{{ r.accuracy }}%</td></tr>{% endfor %}</tbody></table></div>
+<div class="card-custom mt-4"><div class="section-title mb-2"><i class="bi bi-info-circle" style="color:var(--accent-blue);"></i> Puntuación</div>
+<div class="row g-3" style="font-size:.85rem;color:var(--text-secondary);">
+<div class="col-md-4"><strong class="text-gold">Partidos</strong><br>Local/visita = <span class="mono text-green">+1 pt</span><br>Empate = <span class="mono text-green">+2 pts</span></div>
+<div class="col-md-4"><strong class="text-gold">Especiales</strong><br>Campeón = <span class="mono text-green">+10</span> · Subcampeón = <span class="mono text-green">+5</span> · Goleador = <span class="mono text-green">+7</span></div>
+<div class="col-md-4"><strong class="text-gold">Desempates</strong><br>1. Empates acertados<br>2. Aciertos totales<br>3. % acierto<br>4. Antigüedad</div></div></div>
+{% else %}<div class="empty-state"><div class="icon">🏆</div><p>Sin datos aún.</p></div>{% endif %}{% endblock %}

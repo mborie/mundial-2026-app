@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block title %}Admin{% endblock %}{% block content %}
+<div class="page-header"><h1><i class="bi bi-gear-fill" style="color:var(--accent-gold);"></i> Panel de Administración</h1></div>
+<div class="filter-bar mb-4">
+<a href="{{ url_for('admin_dashboard') }}" class="filter-chip {% if request.endpoint=='admin_dashboard' %}active{% endif %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+<a href="{{ url_for('admin_users') }}" class="filter-chip {% if request.endpoint=='admin_users' %}active{% endif %}"><i class="bi bi-people"></i> Usuarios</a>
+<a href="{{ url_for('admin_bets') }}" class="filter-chip {% if request.endpoint=='admin_bets' %}active{% endif %}"><i class="bi bi-card-list"></i> Apuestas</a>
+<a href="{{ url_for('admin_sync') }}" class="filter-chip {% if request.endpoint=='admin_sync' %}active{% endif %}"><i class="bi bi-arrow-repeat"></i> Sincronizar</a>
+<a href="{{ url_for('admin_results') }}" class="filter-chip {% if request.endpoint=='admin_results' %}active{% endif %}"><i class="bi bi-pencil-square"></i> Resultados</a>
+<a href="{{ url_for('admin_config') }}" class="filter-chip {% if request.endpoint=='admin_config' %}active{% endif %}"><i class="bi bi-sliders"></i> Config</a></div>
+<div class="row g-3 mb-4">
+<div class="col-6 col-md-2"><div class="stat-card stat-gold"><div class="stat-value">{{ total_users }}</div><div class="stat-label">Usuarios</div></div></div>
+<div class="col-6 col-md-2"><div class="stat-card"><div class="stat-value" style="color:var(--accent-red);">{{ pending_users }}</div><div class="stat-label">Pendientes</div></div></div>
+<div class="col-6 col-md-2"><div class="stat-card stat-blue"><div class="stat-value">{{ total_matches }}</div><div class="stat-label">Partidos</div></div></div>
+<div class="col-6 col-md-2"><div class="stat-card stat-green"><div class="stat-value">{{ finished_matches }}</div><div class="stat-label">Finalizados</div></div></div>
+<div class="col-6 col-md-2"><div class="stat-card stat-purple"><div class="stat-value">{{ total_bets }}</div><div class="stat-label">Apuestas</div></div></div>
+<div class="col-6 col-md-2"><div class="stat-card"><form method="POST" action="{{ url_for('recalculate') }}"><button type="submit" class="btn btn-primary-custom btn-sm-custom w-100"><i class="bi bi-calculator"></i> Recalcular</button></form><div class="stat-label mt-1">Puntajes</div></div></div></div>
+<div class="card-custom"><div class="section-title mb-3"><i class="bi bi-clock-history" style="color:var(--accent-blue);"></i> Actividad Reciente</div>
+{% if recent_logs %}<div style="max-height:400px;overflow-y:auto;">
+{% for log in recent_logs %}<div class="d-flex align-items-start gap-sm py-2 {% if not loop.last %}border-bottom{% endif %}" style="border-color:var(--border-color)!important;font-size:.85rem;">
+<span class="mono" style="color:var(--text-muted);font-size:.75rem;min-width:100px;">{{ log.created_at|format_date('%d/%m %H:%M') }}</span>
+<span style="color:var(--accent-blue);min-width:120px;font-weight:500;font-size:.78rem;">{{ log.action }}</span>
+<span style="color:var(--text-secondary);">{{ log.details or '' }} {% if log.display_name %}<span style="color:var(--text-muted);">— {{ log.display_name }}</span>{% endif %}</span>
+</div>{% endfor %}</div>{% else %}<p style="color:var(--text-muted);">Sin actividad.</p>{% endif %}</div>
+{% endblock %}

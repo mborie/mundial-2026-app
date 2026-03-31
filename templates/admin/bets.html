@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block title %}Apuestas{% endblock %}{% block content %}
+<div class="page-header"><h1><i class="bi bi-card-list" style="color:var(--accent-purple);"></i> Apuestas</h1></div><div class="filter-bar mb-4">
+<a href="{{ url_for('admin_dashboard') }}" class="filter-chip {% if request.endpoint=='admin_dashboard' %}active{% endif %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+<a href="{{ url_for('admin_users') }}" class="filter-chip {% if request.endpoint=='admin_users' %}active{% endif %}"><i class="bi bi-people"></i> Usuarios</a>
+<a href="{{ url_for('admin_bets') }}" class="filter-chip {% if request.endpoint=='admin_bets' %}active{% endif %}"><i class="bi bi-card-list"></i> Apuestas</a>
+<a href="{{ url_for('admin_sync') }}" class="filter-chip {% if request.endpoint=='admin_sync' %}active{% endif %}"><i class="bi bi-arrow-repeat"></i> Sincronizar</a>
+<a href="{{ url_for('admin_results') }}" class="filter-chip {% if request.endpoint=='admin_results' %}active{% endif %}"><i class="bi bi-pencil-square"></i> Resultados</a>
+<a href="{{ url_for('admin_config') }}" class="filter-chip {% if request.endpoint=='admin_config' %}active{% endif %}"><i class="bi bi-sliders"></i> Config</a></div>
+<div class="card-custom mb-3"><form method="GET" class="row g-2 align-items-end">
+<div class="col-md-4"><label class="form-label-custom">Partido</label><select name="match_id" class="form-select form-select-custom"><option value="">Todos</option>{% for m in matches %}<option value="{{ m.id }}" {% if selected_match==m.id %}selected{% endif %}>{{ m.home_name or '?' }} vs {{ m.away_name or '?' }}</option>{% endfor %}</select></div>
+<div class="col-md-4"><label class="form-label-custom">Usuario</label><select name="user_id" class="form-select form-select-custom"><option value="">Todos</option>{% for u in users %}<option value="{{ u.id }}" {% if selected_user==u.id %}selected{% endif %}>{{ u.display_name }}</option>{% endfor %}</select></div>
+<div class="col-md-4"><button type="submit" class="btn btn-primary-custom w-100"><i class="bi bi-funnel"></i> Filtrar</button></div></form></div>
+<div class="card-custom p-0" style="overflow-x:auto;"><table class="ranking-table"><thead><tr><th>Usuario</th><th>Partido</th><th class="text-center">Pronóstico</th><th class="text-center">Resultado</th><th class="text-center">Pts</th></tr></thead>
+<tbody>{% for b in bets %}<tr><td style="font-weight:600;">{{ b.display_name }}</td><td style="font-size:.85rem;">{{ b.home_name or '?' }} vs {{ b.away_name or '?' }}</td>
+<td class="text-center mono" style="font-weight:700;">{{ b.prediction }}</td>
+<td class="text-center">{% if b.m_home_score is not none %}<span class="mono">{{ b.m_home_score }}-{{ b.m_away_score }}</span>{% else %}—{% endif %}</td>
+<td class="text-center">{% if b.is_correct %}<span class="points-badge points-positive">+{{ b.points_earned }}</span>{% elif b.is_correct==0 %}<span class="points-badge points-zero">0</span>{% else %}—{% endif %}</td></tr>{% endfor %}
+{% if not bets %}<tr><td colspan="5" class="text-center py-4" style="color:var(--text-muted);">Sin apuestas.</td></tr>{% endif %}</tbody></table></div>{% endblock %}
