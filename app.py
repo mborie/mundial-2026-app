@@ -17,6 +17,27 @@ from flask import (
 
 import database as db
 
+from database import get_db_connection
+
+def run_seed_if_empty():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT COUNT(*) FROM matches")
+        count = cursor.fetchone()[0]
+        
+        if count == 0:
+            print("⚽ Base vacía, cargando seed...")
+            import seed_worldcup
+            seed_worldcup.seed_data()  # puede cambiar según tu archivo
+        
+        conn.close()
+    except Exception as e:
+        print(f"Error al inicializar seed: {e}")
+
+run_seed_if_empty()
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # App Factory
 # ═══════════════════════════════════════════════════════════════════════════════
