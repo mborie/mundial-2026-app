@@ -240,15 +240,9 @@ def dashboard():
 @app.route("/init-seed")
 def init_seed():
     try:
+        import importlib
         import seed_worldcup
-
-        if hasattr(seed_worldcup, "seed_data"):
-            seed_worldcup.seed_data()
-        elif hasattr(seed_worldcup, "main"):
-            seed_worldcup.main()
-        else:
-            return "seed_worldcup.py no tiene seed_data() ni main()", 500
-
+        importlib.reload(seed_worldcup)
         return "Seed cargada correctamente", 200
     except Exception as e:
         return f"Error cargando seed: {e}", 500
