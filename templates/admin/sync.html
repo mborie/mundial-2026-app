@@ -1,27 +1,37 @@
-{% extends "base.html" %}{% block title %}Sincronizar{% endblock %}{% block content %}
-<div class="page-header"><h1><i class="bi bi-arrow-repeat" style="color:var(--accent-green);"></i> Sincronización</h1></div><div class="filter-bar mb-4">
-<a href="{{ url_for('admin_dashboard') }}" class="filter-chip {% if request.endpoint=='admin_dashboard' %}active{% endif %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
-<a href="{{ url_for('admin_users') }}" class="filter-chip {% if request.endpoint=='admin_users' %}active{% endif %}"><i class="bi bi-people"></i> Usuarios</a>
-<a href="{{ url_for('admin_bets') }}" class="filter-chip {% if request.endpoint=='admin_bets' %}active{% endif %}"><i class="bi bi-card-list"></i> Apuestas</a>
-<a href="{{ url_for('admin_sync') }}" class="filter-chip {% if request.endpoint=='admin_sync' %}active{% endif %}"><i class="bi bi-arrow-repeat"></i> Sincronizar</a>
-<a href="{{ url_for('admin_results') }}" class="filter-chip {% if request.endpoint=='admin_results' %}active{% endif %}"><i class="bi bi-pencil-square"></i> Resultados</a>
-<a href="{{ url_for('admin_config') }}" class="filter-chip {% if request.endpoint=='admin_config' %}active{% endif %}"><i class="bi bi-sliders"></i> Config</a></div>
+{%extends"base.html"%}{%block title%}Sincronizar{%endblock%}{%block content%}
+<div class="page-header"><h1><i class="bi bi-arrow-repeat" style="color:var(--accent-green);"></i> Sincronización</h1></div>
+<div class="filter-bar mb-4">
+<a href="{{url_for('admin_dashboard')}}" class="filter-chip"><i class="bi bi-speedometer2"></i> Dashboard</a>
+<a href="{{url_for('admin_users')}}" class="filter-chip"><i class="bi bi-people"></i> Usuarios</a>
+<a href="{{url_for('admin_bets')}}" class="filter-chip"><i class="bi bi-card-list"></i> Apuestas</a>
+<a href="{{url_for('admin_sync')}}" class="filter-chip active"><i class="bi bi-arrow-repeat"></i> Sincronizar</a>
+<a href="{{url_for('admin_results')}}" class="filter-chip"><i class="bi bi-pencil-square"></i> Resultados</a>
+<a href="{{url_for('admin_config')}}" class="filter-chip"><i class="bi bi-sliders"></i> Config</a></div>
 <div class="row g-4"><div class="col-lg-8">
 <div class="card-custom mb-4"><div class="section-title mb-3"><i class="bi bi-plug" style="color:var(--accent-blue);"></i> API</div>
-<div>Proveedor: <span class="mono">{{ api_provider }}</span> · {% if api_connected %}<span class="status-badge status-approved">Conectada</span>{% else %}<span class="status-badge status-rejected">Sin conexión</span>{% endif %}</div>
-<div class="mt-2" style="font-size:.85rem;color:var(--text-muted);">Equipos: {{ teams_count }} · Partidos: {{ matches_count }}</div>
-{% if not api_connected %}<div class="alert-custom alert-info-custom mt-3"><i class="bi bi-info-circle"></i> Configura FOOTBALL_API_KEY en .env</div>{% endif %}</div>
-<div class="card-custom mb-4"><div class="section-title mb-3"><i class="bi bi-cloud-download" style="color:var(--accent-gold);"></i> Sincronizar</div>
+<div>Proveedor: <span class="mono">{{api_provider}}</span> · {%if api_connected%}<span class="status-badge status-approved">Conectada</span>{%else%}<span class="status-badge status-rejected">Sin conexión</span>{%endif%}</div>
+<div class="mt-2" style="font-size:.85rem;color:var(--text-muted);">Equipos: {{teams_count}} · Partidos: {{matches_count}}</div></div>
+<div class="card-custom mb-4"><div class="section-title mb-3"><i class="bi bi-cloud-download" style="color:var(--accent-gold);"></i> Sincronizar desde API</div>
 <div class="row g-3">
-<div class="col-md-4"><form method="POST" action="{{ url_for('sync_teams') }}"><button class="btn btn-primary-custom w-100" {% if not api_connected %}disabled{% endif %}><i class="bi bi-flag"></i> Equipos</button></form></div>
-<div class="col-md-4"><form method="POST" action="{{ url_for('sync_matches') }}"><button class="btn btn-primary-custom w-100" {% if not api_connected %}disabled{% endif %}><i class="bi bi-calendar-event"></i> Partidos</button></form></div>
-<div class="col-md-4"><form method="POST" action="{{ url_for('sync_results') }}"><button class="btn btn-primary-custom w-100" {% if not api_connected %}disabled{% endif %}><i class="bi bi-check2-all"></i> Resultados</button></form></div></div></div>
+<div class="col-md-4"><form method="POST" action="{{url_for('sync_teams')}}"><button class="btn btn-primary-custom w-100" {%if not api_connected%}disabled{%endif%}><i class="bi bi-flag"></i> Equipos</button></form></div>
+<div class="col-md-4"><form method="POST" action="{{url_for('sync_matches')}}"><button class="btn btn-primary-custom w-100" {%if not api_connected%}disabled{%endif%}><i class="bi bi-calendar-event"></i> Partidos</button></form></div>
+<div class="col-md-4"><form method="POST" action="{{url_for('sync_results')}}"><button class="btn btn-primary-custom w-100" {%if not api_connected%}disabled{%endif%}><i class="bi bi-check2-all"></i> Resultados</button></form></div></div></div>
+<div class="card-custom mb-4"><div class="section-title mb-3"><i class="bi bi-collection" style="color:var(--accent-purple);"></i> Competiciones</div>
+{%if competitions%}<div class="mb-3">{%for c in competitions%}<span class="status-badge {% if c.is_active %}status-approved{% else %}status-locked{% endif %}" style="margin-right:6px;">{{c.name}} ({{c.code}})</span>{%endfor%}</div>{%endif%}
+<form method="POST" action="{{url_for('add_competition')}}"><div class="row g-2">
+<div class="col-md-2"><input type="text" name="code" class="form-control form-control-custom" placeholder="WORLD_CUP" required></div>
+<div class="col-md-3"><input type="text" name="name" class="form-control form-control-custom" placeholder="Nombre completo" required></div>
+<div class="col-md-2"><input type="text" name="short_name" class="form-control form-control-custom" placeholder="Nombre corto"></div>
+<div class="col-md-2"><input type="text" name="season" class="form-control form-control-custom" placeholder="2026"></div>
+<div class="col-md-3"><button class="btn btn-success-custom w-100"><i class="bi bi-plus-lg"></i> Crear Competición</button></div></div></form></div>
 <div class="card-custom"><div class="section-title mb-3"><i class="bi bi-plus-circle" style="color:var(--accent-green);"></i> Agregar Equipo</div>
-<form method="POST" action="{{ url_for('add_team') }}"><div class="row g-2">
-<div class="col-md-4"><input type="text" name="name" class="form-control form-control-custom" placeholder="Nombre" required></div>
+<form method="POST" action="{{url_for('add_team')}}"><div class="row g-2">
+<div class="col-md-3"><input type="text" name="name" class="form-control form-control-custom" placeholder="Nombre" required></div>
 <div class="col-md-2"><input type="text" name="code" class="form-control form-control-custom" placeholder="COD" maxlength="5"></div>
 <div class="col-md-2"><input type="text" name="group_name" class="form-control form-control-custom" placeholder="Grupo" maxlength="2"></div>
-<div class="col-md-2"><input type="url" name="flag_url" class="form-control form-control-custom" placeholder="URL bandera"></div>
+<div class="col-md-3"><input type="url" name="flag_url" class="form-control form-control-custom" placeholder="URL bandera"></div>
 <div class="col-md-2"><button class="btn btn-success-custom w-100"><i class="bi bi-plus-lg"></i></button></div></div></form></div>
-</div><div class="col-lg-4"><div class="card-custom"><div class="section-title mb-3"><i class="bi bi-question-circle" style="color:var(--accent-blue);"></i> Instrucciones</div>
-<div style="font-size:.85rem;color:var(--text-secondary);"><p><strong>Orden:</strong> 1. Equipos → 2. Partidos → 3. Resultados</p><p>Banderas: <code>flagcdn.com/w80/xx.png</code></p></div></div></div></div>{% endblock %}
+</div><div class="col-lg-4"><div class="card-custom"><div class="section-title mb-3"><i class="bi bi-question-circle" style="color:var(--accent-blue);"></i> Info</div>
+<div style="font-size:.85rem;color:var(--text-secondary);"><p><strong>Competiciones:</strong> Cada competición tiene sus propios equipos, partidos y ranking independiente.</p>
+<p><strong>Orden:</strong> 1. Crear competición → 2. Agregar equipos → 3. Agregar partidos</p>
+<p><strong>Penales:</strong> En Admin → Resultados, usa los campos PL/PV morados para penales.</p></div></div></div></div>{%endblock%}

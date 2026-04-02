@@ -241,17 +241,22 @@ with app.app_context():
     print("\n🏆 FIFA World Cup 2026 — Cargando datos de producción\n")
 
     db.init_db()
+    db.migrate_db()
     # Limpiar datos previos
     conn = db.get_db()
-    for table in ["bets", "special_predictions", "matches", "teams", "audit_log"]:
+    for table in ["bets", "special_predictions", "matches", "teams", "audit_log", "competitions"]:
         conn.execute(f"DELETE FROM {table}")
     conn.commit()
     conn.close()
 
+    # ── Crear competición ──
+    wc_id = db.create_competition("WORLD_CUP", "FIFA World Cup 2026", "Mundial", "2026", 1)
+    print(f"  ✓ Competición creada: Mundial 2026 (id={wc_id})")
+
     # ── Equipos ──
     team_ids = {}
     for name, code, group, flag in TEAMS:
-        tid, _ = db.upsert_team(name=name, code=code, flag_url=flag, group_name=group)
+        tid, _ = db.upsert_team(name=name, code=code, flag_url=flag, group_name=group, competition_id=wc_id)
         team_ids[code] = tid
     print(f"  ✓ {len(TEAMS)} equipos cargados ({len([t for t in TEAMS if t[2]])} en grupos + {len([t for t in TEAMS if not t[2]])} en playoffs)")
 
@@ -260,7 +265,7 @@ with app.app_context():
     for hc, ac, dt, stage, group, venue, status in PLAYOFFS:
         ht, at = team_ids.get(hc), team_ids.get(ac)
         if ht and at:
-            db.create_match(ht, at, dt, stage, group, venue)
+            db.create_match(ht, at, dt, stage, group, venue, competition_id=wc_id)
             pc += 1
     print(f"  ✓ {pc} partidos de playoffs cargados (HOY 31 Marzo)")
 
@@ -269,7 +274,7 @@ with app.app_context():
     for hc, ac, dt, group, venue in GROUP_MATCHES:
         ht, at = team_ids.get(hc), team_ids.get(ac)
         if ht and at:
-            db.create_match(ht, at, dt, "GROUP_STAGE", group, venue)
+            db.create_match(ht, at, dt, "GROUP_STAGE", group, venue, competition_id=wc_id)
             gc += 1
         else:
             missing = hc if not team_ids.get(hc) else ac
